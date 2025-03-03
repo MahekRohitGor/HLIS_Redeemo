@@ -11,7 +11,7 @@ class authModel{
              const data_received = common.generate_user_detail(requested_data);
              const device_data = common.generateDeviceDetails(requested_data);
              const existingUsers = await common.checkExistingUser(data_received);
-             console.log(requested_data)
+             console.log(requested_data);
              
              if (existingUsers.length > 0) {
                  await common.handleExistingUser(existingUsers, requested_data, callback);

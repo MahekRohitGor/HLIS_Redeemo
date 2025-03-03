@@ -8,6 +8,7 @@ const { t } = require('localizify');
 class User{
     async signup(req,res){
         try{
+            console.log(req);
             var request_data = req.body;
             authModel.signup(request_data, (_response_data)=>{
                 common.response(res, _response_data);

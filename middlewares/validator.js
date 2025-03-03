@@ -45,37 +45,6 @@ class validator{
         }
         next();
     }
-
-    valdidateApiKey(req,res,next){
-        var api_key = (req.headers['api-key'] != undefined && req.headers['api-key'] != "" ? req.headers['api-key'] : '');
-        if(api_key != ""){
-            try{
-                if(api_key === process.env.API_KEY){
-                    next();
-                } else{
-                    const response_data = {
-                        code: response_code.UNAUTHORIZED,
-                        message: "Invalid API Key"
-                    }
-                    res.status(401).send(response_data);
-                }
-
-            } catch(error){
-                    const response_data = {
-                        code: response_code.UNAUTHORIZED,
-                        message: "Invalid API Key"
-                    }
-
-                    res.status(401).send(response_data);
-            }
-        } else{
-            const response_data = {
-                code: response_code.UNAUTHORIZED,
-                message: "Invalid API Key"
-            }
-            res.status(401).send(response_data);
-        }
-    }
     
 }
 
