@@ -496,11 +496,9 @@ class authModel{
             category = " tbl_service_provider.category_id IN (" + request_data.category.join(",") + ") AND ";
         }
     
-        // Construct WHERE clause properly to avoid trailing AND
         let whereConditions = trending + featured + fav + category;
-        whereConditions = whereConditions.trim(); // Remove extra spaces
+        whereConditions = whereConditions.trim();
     
-        // Remove the last 'AND' if it exists
         if (whereConditions.endsWith("AND")) {
             whereConditions = whereConditions.slice(0, -4);
         }
