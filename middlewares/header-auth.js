@@ -86,7 +86,7 @@ class headerAuth{
                 .add("fr", fr)
                 .add("guj", guj);
     
-            const byPassApi = ['forgotPassword', 'resendOTP', 'login', 'signup', 'verifyOTP', 'setPassword'];
+            const byPassApi = ['forgotPassword', 'verifyOtp', 'resendOTP' , 'login', 'signup', 'resetPassword'];
     
             if (lodash.isEqual(headers["api-key"], process.env.API_KEY)) {
                 var headerObj = new headerAuth();
@@ -109,7 +109,8 @@ class headerAuth{
                         console.log(user);
                         req.user_id = user.user_id;
                         req.user = user;
-                        return next();
+                        console.log("req.user_id set to:", req.user_id);
+                        next();
                     } catch (error) {
                         return res.status(401).json({
                             code: response_code.UNAUTHORIZED,

@@ -262,7 +262,7 @@ class common{
                 } else {
                     return callback({
                         code: response_code.SUCCESS,
-                        message: "Success, Profile Completion Pending...",
+                        message: "Success, Profile Completion and Verification Pending...",
                         data: userInfo
                     });
                 }
