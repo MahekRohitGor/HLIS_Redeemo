@@ -57,8 +57,10 @@ class headerAuth{
 
     async getRequestOwner(token) {
         try {
+            console.log("here");
             var selectRequestOwnerQuery = "SELECT * from tbl_user WHERE token = ?";
             const [owner] = await database.query(selectRequestOwnerQuery, [token]);
+            console.log(owner);
             if (owner.length > 0) {
                 return owner[0];
             } else {
@@ -72,10 +74,11 @@ class headerAuth{
     async header(req, res, next) {
         try {
             let headers = req.headers;
-            let lng = (headers.accept_language && supported_languages.includes(headers.accept_language)) 
-                      ? headers.accept_language 
-                      : 'en';
-    
+            var supported_languages = ["en", "fr", "guj"];
+            let lng = (headers["accept-language"] && supported_languages.includes(headers["accept-language"]))
+                    ? headers["accept-language"]
+                    : "en";
+
             process.env.LNG = lng;
 
             localizify
@@ -101,7 +104,9 @@ class headerAuth{
                     }
 
                     try {
-                        const user = await this.getRequestOwner(token);
+                        console.log(token);
+                        const user = await headerObj.getRequestOwner(token);
+                        console.log(user);
                         req.user_id = user.user_id;
                         req.user = user;
                         return next();
