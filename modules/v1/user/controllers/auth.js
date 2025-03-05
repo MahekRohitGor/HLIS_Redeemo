@@ -4,12 +4,28 @@ const response_code = require("../../../../utilities/response-error-code");
 const {default: localizify} = require('localizify');
 const validator = require("../../../../middlewares/validator");
 const { t } = require('localizify');
+const vrules = require("../../../validation-rules");
 
 class User{
     async signup(req,res){
         try{
-            console.log(req);
             var request_data = req.body;
+            var rules = vrules.signup;
+            console.log(rules);
+            var message = {
+                required: t('required'),
+                email: t('email'),
+                'mobile_number.min': t('mobile_number_min'),
+                'mobile_number.regex': t('mobile_number_numeric'),
+                'passwords.min': t('passwords_min')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id'),
+                'passwords': t('rest_keywords_password')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
             authModel.signup(request_data, (_response_data)=>{
                 common.response(res, _response_data);
             });
