@@ -557,7 +557,6 @@ class authModel{
         try {
             var latitude = user.latitude;
             var longitude = user.longitude;
-    
             let mainQuery = `SELECT 
                                 s.sp_id, 
                                 s.title_name, 
@@ -658,7 +657,139 @@ class authModel{
         }
     }
     
+    async redeem_vouchers(request_data, user_id, callback){
+        try{
+            const { voucher_id, sp_id } = request_data;
+            const query = `SELECT voucher_id, saving_amt, expire_date from tbl_vouchers where voucher_id = ${voucher_id} and is_active = 1 and is_deleted = 0`;
+            const [voucherResult] = await database.execute(query);
+            console.log(voucherResult);
+
+            console.log("voucher_id type:", typeof voucher_id);
+
+            if (!voucherResult) {
+                return callback({
+                    code: response_code.NOT_FOUND,
+                    message: "Voucher not found or inactive",
+                    data: null
+                });
+            }
+
+            if (new Date(voucherResult.expire_date) < new Date()) {
+                return callback({
+                    code: response_code.BAD_REQUEST,
+                    message: "This voucher has expired",
+                    data: null
+                });
+            }
+
+        const redemptionCheckQuery = `
+            SELECT * FROM tbl_voucher_redemptions 
+            WHERE user_id = ? AND voucher_id = ?;
+        `;
+        const [redemptionCheck] = await database.query(redemptionCheckQuery, [user_id, voucher_id]);
+        if (redemptionCheck.length > 0) {
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "You have already redeemed this voucher",
+                data: null
+            });
+        }
+
+        const insertRedemptionQuery = `
+            INSERT INTO tbl_voucher_redemptions (user_id, sp_id, voucher_id, status, created_at)
+            VALUES (?, ?, ?, 'SUCCESS', NOW());
+        `;
+        await database.query(insertRedemptionQuery, [user_id, sp_id, voucher_id]);
+
+        return callback({
+            code: response_code.SUCCESS,
+            message: "Voucher redeemed successfully!",
+            data: {
+                user_id,
+                voucher_id,
+                saved_amount: voucherResult[0].saving_amt
+            }
+        });
+
+        } catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "SOME ERROR",
+                data: error.message
+            });
+        }
+    }
+
+    async list_user_favs(request_data, user_id, callback){
+        try{
+            var query = "";
+            if(request_data.sp_fav){
+                query = `SELECT * from tbl_service_provider where sp_id in (SELECT sp_id from tbl_user_fav_sp WHERE user_id = ${user_id})`;
+            } else if(request_data.voucher_fav){
+                query = `SELECT * from tbl_vouchers where voucher_id in (SELECT voucher_id from tbl_user_fav_voucher WHERE user_id = ${user_id})`;
+            } else{
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: "SOME ERROR OCCURED PLEASE SELECT FAV type"
+                })
+            }
+
+            const [results] = await database.query(query);
+
+            if(results.length < 0){
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: "No DATA FOUND"
+                });
+            }
+
+            else{
+                return callback({
+                    code: response_code.SUCCESS,
+                    message: "HERE IS DATA",
+                    data: results
+                });
+            }
+
+        } catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "SOME ERROR OCCURED",
+                data: error
+            });
+        }
+    }
     
+    async list_notification(request_data, user_id, callback){
+        try{
+
+            const query = `SELECT * FROM tbl_notification where user_id = ${user_id}`;
+            const [result] = await database.query(query);
+
+            if(result.length < 0){
+                return callback({
+                    code: response_code.SUCCESS,
+                    message: "NO NOTIFICATION FOUND"
+                });
+            }
+            return callback({
+                code: response_code.SUCCESS,
+                message: "NOTIFICATION FOUND",
+                data: result
+            });
+
+        } catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "Some Error Occured",
+                data: error
+            });
+        }
+    }
+
+    async change_password(request_data, user_id, callback){
+        
+    }
 }
 
 module.exports = new authModel();

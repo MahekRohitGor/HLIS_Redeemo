@@ -11,7 +11,9 @@ const user = (app) =>{
         app.post("/v1/user/category-listing", auth.category_listing);
         app.post("/v1/user/service-listing", auth.service_listing);
         app.post("/v1/user/list-service-provier/:id", auth.list_service_provider);
-
+        app.post("/v1/user/redeem-voucher", auth.redeem_vouchers);
+        app.post("/v1/user/list-favs", auth.list_user_favs);
+        app.post("/v1/user/list-notification", auth.list_notification);
 }
 
 module.exports = user;
