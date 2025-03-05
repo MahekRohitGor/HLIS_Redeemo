@@ -4,6 +4,7 @@ const response_code = require("../../../../utilities/response-error-code");
 const md5 = require("md5");
 const {default: localizify} = require('localizify');
 const { t } = require('localizify');
+const user = require("../routes/routes");
 
 class authModel{
     async signup(requested_data, callback){
@@ -1003,9 +1004,20 @@ class authModel{
     
     async list_subs_plans(request_data, user_id, callback){
         try{
-            const listSubsPlan = "SELECT * from tbl_subscription";
-            const [result] = await database.query(listSubsPlan);
-
+            const listSubsPlan = `SELECT 
+                                s.subsc_id, 
+                                s.subs_type, 
+                                s.price, 
+                                IFNULL(us.user_id, 0) AS has_subscription, 
+                                CASE 
+                                    WHEN us.end_date < NOW() THEN 'renew'
+                                    WHEN us.user_id IS NOT NULL THEN 'active'
+                                    ELSE 'upgrade'0
+                                END AS status
+                            FROM tbl_subscription s
+                            LEFT JOIN tbl_user_subscription us ON s.subsc_id = us.subsc_id AND us.user_id = ?
+                            WHERE s.is_active = 1 AND s.is_deleted = 0;`;
+            const [result] = await database.query(listSubsPlan, [user_id]);
             if(result.length === 0){
                 return callback({
                     code: response_code.DATA_NOT_FOUND,
@@ -1027,6 +1039,64 @@ class authModel{
             })
         }
     }
+    
+    async make_subscription(request_data, user_id, callback){
+        try{
+            const {subsc_id} = request_data;
+            console.log(request_data);
+            const fetchSunscriptionDetail = `SELECT * from tbl_subscription where subsc_id = ${subsc_id}`;
+            const [result] = await database.query(fetchSunscriptionDetail);
+            console.log(result);
+
+            if(result.length === 0){
+                return callback({
+                    code: response_code.DATA_NOT_FOUND,
+                    message: "NOT FOUND"
+                })
+            }
+
+            const checkActiveSubscription = `
+            SELECT * FROM tbl_user_subscription 
+            WHERE user_id = ? 
+            AND is_active = 1 
+            AND end_date > NOW()
+            `;
+
+            const [activeSubscription] = await database.query(checkActiveSubscription, [user_id]);
+
+            if (activeSubscription.length > 0) {
+                return callback({
+                    code: response_code.ALREADY_SUBSCRIBED,
+                    message: "You already have an active subscription"
+                });
+            }
+
+            const insertData = `INSERT INTO tbl_user_subscription (user_id, subs_type, duration_in_months, price, subsc_id) 
+            VALUES (?, ?, ?, ?, ?)`;
+
+            await database.query(insertData, [
+                user_id, 
+                result[0].subs_type, 
+                result[0].duration_in_months, 
+                result[0].price,
+                subsc_id
+            ]);
+
+            return callback({
+                code: response_code.SUCCESS,
+                message: "SUCCESS"
+            });
+
+        } catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "ERROR",
+                data: error.message
+            })
+
+        }
+    }
+
     
 }
 

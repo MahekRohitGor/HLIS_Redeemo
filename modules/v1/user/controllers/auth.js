@@ -296,6 +296,22 @@ class User{
         }
     }
 
+    async make_subscription(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            authModel.make_subscription(request_data, user_id, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: "Something Went Wrong"
+            });
+        }
+    }
+
 }
 
 module.exports = new User();
