@@ -1001,6 +1001,33 @@ class authModel{
         }
     }
     
+    async list_subs_plans(request_data, user_id, callback){
+        try{
+            const listSubsPlan = "SELECT * from tbl_subscription";
+            const [result] = await database.query(listSubsPlan);
+
+            if(result.length === 0){
+                return callback({
+                    code: response_code.DATA_NOT_FOUND,
+                    message: "NOT FOUND"
+                })
+            }
+
+            return callback({
+                code: response_code.SUCCESS,
+                message: "FOUND",
+                data: result
+            })
+
+        } catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "ERROR",
+                data: error
+            })
+        }
+    }
+    
 }
 
 module.exports = new authModel();
