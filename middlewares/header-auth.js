@@ -58,7 +58,7 @@ class headerAuth{
     async getRequestOwner(token) {
         try {
             console.log("here");
-            var selectRequestOwnerQuery = "SELECT * from tbl_user WHERE token = ?";
+            var selectRequestOwnerQuery = "SELECT * from tbl_user WHERE token = ? and is_deleted = 0 and is_active = 1";
             const [owner] = await database.query(selectRequestOwnerQuery, [token]);
             console.log(owner);
             if (owner.length > 0) {

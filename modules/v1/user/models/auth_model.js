@@ -1097,7 +1097,50 @@ class authModel{
         }
     }
 
-    
+    async post_review(request_data, user_id, callback){
+        try{
+            const {sp_id, rating, reviews} = request_data;
+
+            const findSP = "SELECT * from tbl_service_provider where sp_id = ?";
+            const [result] = await database.query(findSP, [sp_id]);
+
+            if(result.length === 0){
+                return callback({
+                    code: response_code.DATA_NOT_FOUND,
+                    message: "NO Service Provider Found"
+                });
+            }
+
+            const findReview = "SELECT * from tbl_ratings_review where user_id = ? and sp_id = ?";
+            const [results] = await database.query(findReview, [user_id, sp_id]);
+
+            if(results.length > 0){
+                return callback({
+                    code: response_code.DATA_NOT_FOUND,
+                    message: "Already Rated and Reviewed"
+                });
+            }
+
+            const insertQuery = "INSERT INTO tbl_ratings_review (rating, reviews, sp_id, user_id) VALUES (?,?,?,?)";
+            await database.query(insertQuery, [rating, reviews, sp_id, user_id]);
+            return callback({
+                code: response_code.SUCCESS,
+                message: "SUCCESS",
+                data: {
+                    user_id: user_id,
+                    rating: rating,
+                    reviews: reviews
+                }
+            });
+
+        } catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "ERROR",
+                data: error
+            });
+        }
+    }
 }
 
 module.exports = new authModel();

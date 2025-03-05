@@ -312,6 +312,22 @@ class User{
         }
     }
 
+    async post_review(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            authModel.post_review(request_data, user_id, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: "Something Went Wrong"
+            });
+        }
+    }
+
 }
 
 module.exports = new User();
