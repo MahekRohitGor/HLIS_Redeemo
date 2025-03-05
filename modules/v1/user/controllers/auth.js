@@ -264,6 +264,22 @@ class User{
         }
     }
 
+    async delete_account(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            authModel.delete_account(request_data, user_id, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: "Something Went Wrong"
+            });
+        }
+    }
+
 }
 
 module.exports = new User();

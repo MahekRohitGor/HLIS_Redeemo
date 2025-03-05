@@ -948,6 +948,58 @@ class authModel{
             })
         }
     }
+
+    async delete_account(request_data, user_id, callback) {
+        try {
+
+            var select_user_query = "SELECT * FROM tbl_user WHERE user_id = ? and is_login = 1";
+            const [info] = await database.query(select_user_query, [user_id]);
+
+            if (info.length === 0) {
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: t('login_required')
+                });
+            }
+            
+            const selectUserQuery = "SELECT * FROM tbl_user WHERE user_id = ? AND is_deleted = 0";
+            const [user] = await database.query(selectUserQuery, [user_id]);
+    
+            if (!user.length) {
+                return callback({
+                    code: response_code.NOT_FOUND,
+                    message: t('user_already_deleted')
+                });
+            }
+    
+            const deleteUserQuery = "UPDATE tbl_user SET is_deleted = 1, is_active = 0, is_login = 0 WHERE user_id = ?";
+            await database.query(deleteUserQuery, [user_id]);
+    
+            const deleteReviewQuery = "UPDATE tbl_ratings_review SET is_deleted = 1, is_active=0 WHERE user_id = ?";
+            await database.query(deleteReviewQuery, [user_id]);
+    
+            const deleteInterestsQuery = "UPDATE tbl_user_interest_rel SET is_deleted = 1 WHERE user_id = ?";
+            await database.query(deleteInterestsQuery, [user_id]);
+    
+            const deleteFavSPQuery = "UPDATE tbl_user_fav_sp SET is_deleted = 1 WHERE user_id = ?";
+            await database.query(deleteFavSPQuery, [user_id]);
+    
+            const deleteFavVoucherQuery = "UPDATE tbl_user_fav_voucher SET is_deleted = 1 WHERE user_id = ?";
+            await database.query(deleteFavVoucherQuery, [user_id]);
+
+            return callback({
+                code: response_code.SUCCESS,
+                message: t('account_deleted')
+            });
+    
+        } catch (error) {
+            console.log(error);
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: error
+            });
+        }
+    }
     
 }
 
