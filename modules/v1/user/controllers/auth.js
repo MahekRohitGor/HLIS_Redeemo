@@ -216,6 +216,54 @@ class User{
         }
     }
 
+    async change_password(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            authModel.change_password(request_data, user_id, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: "Something Went Wrong"
+            });
+        }
+    }
+
+    async edit_profile(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            authModel.edit_profile(request_data, user_id, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: "Something Went Wrong"
+            });
+        }
+    }
+
+    async logout(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            authModel.logout(request_data, user_id, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: "Something Went Wrong"
+            });
+        }
+    }
+
 }
 
 module.exports = new User();

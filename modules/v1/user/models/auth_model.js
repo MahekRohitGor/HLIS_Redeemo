@@ -788,8 +788,167 @@ class authModel{
     }
 
     async change_password(request_data, user_id, callback){
-        
+        var selectQuery = "SELECT * FROM tbl_user WHERE user_id = ? and is_login = 1";
+        try {
+            const [rows] = await database.query(selectQuery, [user_id]);
+            
+            if (!rows || rows.length === 0) {
+                return callback({
+                    code: response_code.NOT_FOUND,
+                    message: t('no_data_found')
+                });
+            }
+            const user = rows[0];
+            if(user.signup_type != "S"){
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: "Cant Change Password for Signup with Socials"
+                })
+            }
+    
+            const oldPasswordHash = md5(request_data.old_password);
+            const newPasswordHash = md5(request_data.new_password);
+
+            if (oldPasswordHash !== user.passwords) {
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: t('old_password_mismatch')
+                });
+            }
+    
+            if (newPasswordHash === user.passwords) {
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: t('old_new_password_same')
+                });
+            }
+    
+            const data = {
+                passwords: newPasswordHash
+            };
+
+            const updateQuery = "UPDATE tbl_user SET ? where user_id = ?";
+            await database.query(updateQuery, [data, user_id]);
+
+            const selectUser = "SELECT * FROM tbl_user where user_id = ?"
+            const [result] = await database.query(selectUser, [user_id]);
+
+            return callback({
+                code: response_code.SUCCESS,
+                message: t('password_changed_success'),
+                data: result
+            })
+    
+        } catch (error) {
+            console.error('Change Password Error:', error);
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: error.message || t('password_change_error')
+            });
+        }
     }
+
+    async edit_profile(request_data, user_id, callback) {
+        try {
+            const allowedFields = ["fname", "lname", "date_of_birth", "address", "gender"];
+            let updateFields = [];
+            let values = [];
+    
+            for (let key of allowedFields) {
+                if (request_data[key] !== undefined) {
+                    updateFields.push(`${key} = ?`);
+                    values.push(request_data[key]);
+                }
+            }
+    
+            if (updateFields.length === 0 && !Array.isArray(request_data.interests)) {
+                return callback({
+                    code: response_code.NO_CHANGE,
+                    message: t("no_valid_fields_update"),
+                });
+            }
+    
+            if (updateFields.length > 0) {
+                updateFields.push("updated_at = CURRENT_TIMESTAMP()");
+                values.push(user_id);
+    
+                const updateQuery = `
+                    UPDATE tbl_user 
+                    SET ${updateFields.join(", ")}
+                    WHERE user_id = ? AND is_active = 1 AND is_deleted = 0 AND is_login = 1
+                `;
+    
+                const [result] = await database.query(updateQuery, values);
+                if (result.affectedRows === 0) {
+                    return callback({
+                        code: response_code.NOT_FOUND,
+                        message: t("profile_update_no_changes"),
+                    });
+                }
+            }
+
+            if (Array.isArray(request_data.interests)) {
+                console.log("here");
+                await database.query("DELETE FROM tbl_user_interest_rel WHERE user_id = ?", [user_id]);
+    
+                if (request_data.interests.length > 0) {
+                    const insertValues = request_data.interests.map((interest_id) => [user_id, interest_id]);
+                    const insertQuery = "INSERT INTO tbl_user_interest_rel (user_id, interest_id) VALUES ?";
+                    await database.query(insertQuery, [insertValues]);
+                }
+            }
+    
+            return callback({
+                code: response_code.SUCCESS,
+                message: t("profile_updated_success"),
+            });
+        } catch (error) {
+            console.error(error);
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: t("profile_update_error"),
+            });
+        }
+    }
+
+    async logout(request_data, user_id, callback){
+        try{
+            var select_user_query = "SELECT * FROM tbl_user WHERE user_id = ? and is_login = 1";
+            const [info] = await database.query(select_user_query, [user_id]);
+            if(info.length > 0){
+                const updateDeviceTokenQuery = "UPDATE tbl_device_info SET device_token = '', updated_at = NOW() WHERE user_id = ?";
+            const updateTokenQuery = "UPDATE tbl_user SET token = '', is_login = 0 WHERE user_id = ?";
+    
+            await Promise.all([
+                database.query(updateDeviceTokenQuery, [user_id]),
+                database.query(updateTokenQuery, [user_id])
+            ]);
+    
+            const getUserQuery = "SELECT * FROM tbl_user WHERE user_id = ?";
+            const [updatedUser] = await database.query(getUserQuery, [user_id]);
+    
+            return callback({
+                code: response_code.SUCCESS,
+                message: t('logout_success'),
+                data: updatedUser[0]
+            });
+
+            } else{
+                return callback({
+                    code: response_code.NOT_FOUND,
+                    message: t('user_not_found_or_logged_out')
+                });
+            }
+
+        } catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: t('some_error_occurred'),
+                data: error
+            })
+        }
+    }
+    
 }
 
 module.exports = new authModel();

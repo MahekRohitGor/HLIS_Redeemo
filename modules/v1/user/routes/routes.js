@@ -14,6 +14,9 @@ const user = (app) =>{
         app.post("/v1/user/redeem-voucher", auth.redeem_vouchers);
         app.post("/v1/user/list-favs", auth.list_user_favs);
         app.post("/v1/user/list-notification", auth.list_notification);
+        app.post("/v1/user/change-password", auth.change_password);
+        app.post("/v1/user/edit-profile", auth.edit_profile);
+        app.post("/v1/user/logout", auth.logout);
 }
 
 module.exports = user;
