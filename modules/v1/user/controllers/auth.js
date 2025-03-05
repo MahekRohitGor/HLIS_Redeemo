@@ -137,7 +137,26 @@ class User{
         try{
             var request_data = req.body;
             var user_id = req.user_id;
-            authModel.service_listing(request_data, user_id, (_response_data)=>{
+            var user = req.user;
+            authModel.service_listing(request_data, user_id, user, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: "Something Went Wrong"
+            });
+        }
+    }
+
+    async list_service_provider(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            var sp_id = req.params.id;
+            var user = req.user;
+            authModel.list_service_provider(request_data, user_id, user, sp_id, (_response_data)=>{
                 common.response(res, _response_data);
             });
 

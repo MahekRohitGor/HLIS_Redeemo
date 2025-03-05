@@ -420,7 +420,7 @@ class authModel{
         }
     }
 
-    async service_listing(request_data, user_id, callback){
+    async service_listing(request_data, user_id, user, callback){
         if(request_data.page <= 0){
             var page = 1;
         }
@@ -434,6 +434,12 @@ class authModel{
         var trending = "";
         var fav = "";
         var category = "";
+        var search = "";
+        var amenities = "";
+        var latitude = user.latitude;
+        var longitude = user.longitude;
+        var distance_filter = "";
+        var nearby = "";
 
         const updateUserNoTrending = `update 
                                     tbl_service_provider
@@ -481,7 +487,6 @@ class authModel{
                                         WHERE is_active = 1 and is_deleted = 0;`
                                         
         await database.query(updateUserWithFeature);
-        
 
         if (request_data.trending) {
             trending = " tbl_service_provider.is_trending = 1 AND ";
@@ -495,8 +500,35 @@ class authModel{
         if (request_data.category && Array.isArray(request_data.category) && request_data.category.length > 0) {
             category = " tbl_service_provider.category_id IN (" + request_data.category.join(",") + ") AND ";
         }
+        if (request_data.search != '' && request_data.search != undefined) {
+            search = ' (tbl_service_provider.title_name LIKE "%' + request_data.search + '%" ) AND ';
+        }
+        if (request_data.amenities && Array.isArray(request_data.amenities) && request_data.amenities.length > 0) {
+            amenities = ` tbl_service_provider.sp_id IN (SELECT sp_id FROM tbl_amenities_sp_relation WHERE amenities_id IN (${request_data.amenities.join(",")})) AND `;
+        }        
+
+        if (latitude && longitude && request_data.distance_km) {
+            let max_distance = request_data.distance_km;
+        
+            distance_filter = `
+                (6371 * acos(
+                    cos(radians(${latitude})) * cos(radians(tbl_service_provider.latitude)) 
+                    * cos(radians(tbl_service_provider.longitude) - radians(${longitude})) 
+                    + sin(radians(${latitude})) * sin(radians(tbl_service_provider.latitude))
+                )) <= ${max_distance} AND `;
+        }
+
+        if (latitude && longitude && request_data.nearby) {
+        
+            nearby = `
+                (6371 * acos(
+                    cos(radians(${latitude})) * cos(radians(tbl_service_provider.latitude)) 
+                    * cos(radians(tbl_service_provider.longitude) - radians(${longitude})) 
+                    + sin(radians(${latitude})) * sin(radians(tbl_service_provider.latitude))
+                )) <= 500 AND `;
+        }
     
-        let whereConditions = trending + featured + fav + category;
+        let whereConditions = trending + featured + fav + category + search + amenities + distance_filter + nearby;
         whereConditions = whereConditions.trim();
     
         if (whereConditions.endsWith("AND")) {
@@ -504,7 +536,6 @@ class authModel{
         }
     
         let final_query = `SELECT * FROM tbl_service_provider ${whereConditions ? "WHERE " + whereConditions : ""} LIMIT ${start}, ${limit};`;
-    
         console.log(final_query);
 
         try{
@@ -520,10 +551,113 @@ class authModel{
                 data: error
             })
         }
-
-
     }
 
+    async list_service_provider(request_data, user_id, user, sp_id, callback) {
+        try {
+            var latitude = user.latitude;
+            var longitude = user.longitude;
+    
+            let mainQuery = `SELECT 
+                                s.sp_id, 
+                                s.title_name, 
+                                a.address, 
+                                s.latitude, 
+                                s.longitude, 
+                                (6371 * ACOS(
+                                    COS(RADIANS(${latitude})) * COS(RADIANS(s.latitude)) 
+                                    * COS(RADIANS(s.longitude) - RADIANS(${longitude})) 
+                                    + SIN(RADIANS(${latitude})) * SIN(RADIANS(s.latitude))
+                                )) AS distance, 
+                                s.review_cnt, 
+                                s.contact_number, 
+                                s.contact_email, 
+                                l.image_name AS logo_image, 
+                                c.image_name AS cover_image
+                            FROM tbl_service_provider s 
+                            LEFT JOIN tbl_address a ON a.address_id = s.address_id 
+                            LEFT JOIN tbl_images l ON l.image_id = s.logo_img_id 
+                            LEFT JOIN tbl_images c ON c.image_id = s.cover_image_id
+                            WHERE s.sp_id = ?;`;
+    
+            const [mainResult] = await database.query(mainQuery, [sp_id]);
+    
+            if (mainResult.length === 0) {
+                return callback({
+                    code: response_code.NOT_FOUND,
+                    message: "Service provider not found",
+                    data: null
+                });
+            }
+    
+            let additionalData = {};
+            if (request_data.about) {
+                let aboutQuery = `SELECT s.about_text FROM tbl_service_provider s WHERE s.sp_id = ?;`;
+                let amenitiesQuery = `SELECT a.amenities_name 
+                                      FROM tbl_amenities_sp_relation ar 
+                                      LEFT JOIN tbl_amenities a ON ar.amenities_id = a.amenities_id 
+                                      WHERE ar.sp_id = ? AND ar.is_active = 1;`;
+                let galleryQuery = `SELECT i.image_name 
+                                    FROM tbl_service_provider_gallery g 
+                                    JOIN tbl_images i ON g.image_id = i.image_id 
+                                    WHERE g.sp_id = ? AND g.is_active = 1;`;
+    
+                const [aboutResult] = await database.query(aboutQuery, [sp_id]);
+                const [amenitiesResult] = await database.query(amenitiesQuery, [sp_id]);
+                const [galleryResult] = await database.query(galleryQuery, [sp_id]);
+    
+                additionalData.about_text = aboutResult.length > 0 ? aboutResult[0].about_text : "";
+                additionalData.amenities = amenitiesResult.map(row => row.amenities_name);
+                additionalData.gallery_images = galleryResult.map(row => row.image_name);
+                console.log(additionalData);
+            }
+    
+            if (request_data.branches) {
+                let branchesQuery = `SELECT b.branch_id, b.branch_name, b.avg_rating, i.image_name AS branch_image, b.desc_ 
+                                     FROM tbl_branch b 
+                                     LEFT JOIN tbl_images i ON b.branch_image = i.image_id 
+                                     WHERE b.sp_id = ? AND b.is_active = 1;`;
+    
+                const [branchesResult] = await database.query(branchesQuery, [sp_id]);
+                additionalData.branches = branchesResult;
+            }
+    
+            if (request_data.vouchers) {
+                let vouchersQuery = `SELECT v.voucher_id, v.voucher_code, v.title, v.descriptions, v.saving_amt, v.expire_date, i.image_name AS voucher_banner 
+                                     FROM tbl_voucher_sp_relation vr
+                                     JOIN tbl_vouchers v ON vr.voucher_id = v.voucher_id
+                                     LEFT JOIN tbl_images i ON v.voucher_banner_id = i.image_id
+                                     WHERE vr.sp_id = ? AND vr.is_active = 1;`;
+    
+                const [vouchersResult] = await database.query(vouchersQuery, [sp_id]);
+                additionalData.vouchers = vouchersResult;
+            }
+    
+            if (request_data.rating_review) {
+                let ratingsQuery = `SELECT r.rating, r.reviews, u.user_id, u.fname, u.lname 
+                                    FROM tbl_ratings_review r 
+                                    JOIN tbl_user u ON r.user_id = u.user_id
+                                    WHERE r.sp_id = ? AND r.is_active = 1;`;
+    
+                const [ratingsResult] = await database.query(ratingsQuery, [sp_id]);
+                additionalData.ratings_reviews = ratingsResult;
+            }
+    
+            return callback({
+                code: response_code.SUCCESS,
+                data: { ...mainResult[0], ...additionalData }
+            });
+    
+        } catch (error) {
+            console.error(error);
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "SOME ERROR OCCURRED",
+                data: error
+            });
+        }
+    }
+    
     
 }
 
