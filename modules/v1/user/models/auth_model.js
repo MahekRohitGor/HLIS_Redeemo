@@ -1177,7 +1177,6 @@ class authModel{
                     message: t('invalid_request_data')
                 });
             }
-        
             const [result] = await database.query(query);
         
             if (result.affectedRows > 0) {
