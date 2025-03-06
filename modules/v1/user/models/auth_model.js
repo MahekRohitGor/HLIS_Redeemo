@@ -1032,10 +1032,10 @@ class authModel{
                                 CASE 
                                     WHEN us.end_date < NOW() THEN 'renew'
                                     WHEN us.user_id IS NOT NULL THEN 'active'
-                                    ELSE 'upgrade'0
+                                    ELSE 'upgrade'
                                 END AS status
                             FROM tbl_subscription s
-                            LEFT JOIN tbl_user_subscription us ON s.subsc_id = us.subsc_id AND us.user_id = ?
+                            LEFT JOIN tbl_user_subscription us ON s.subsc_id = us.subsc_id AND us.user_id = ${user_id}
                             WHERE s.is_active = 1 AND s.is_deleted = 0;`;
             const [result] = await database.query(listSubsPlan, [user_id]);
             if(result.length === 0){
