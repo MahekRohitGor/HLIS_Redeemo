@@ -41,6 +41,19 @@ class User{
     async login(req,res){
         try{
             var request_data = req.body;
+            var rules = vrules.login;
+            var message = {
+                required: t('required'),
+                email: t('email'),
+                'passwords.min': t('passwords_min')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id'),
+                'passwords': t('rest_keywords_password')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
             authModel.login(request_data, (_response_data)=>{
                 common.response(res, _response_data);
             });
@@ -57,6 +70,20 @@ class User{
         try{
             var request_data = req.body;
             var user_id = req.user_id;
+            var rules = vrules.verifyOTP;
+            var message = {
+                required: t('required'),
+                email: t('email'),
+                'otp.min': t('otp_min') // new
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id'),
+                'otp': t('rest_keywords_otp') // new
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
             console.log(user_id);
             authModel.verifyOtp(request_data, (_response_data)=>{
                 common.response(res, _response_data);
@@ -75,6 +102,18 @@ class User{
             var request_data = req.body;
             var user_id = req.user_id;
             console.log(user_id);
+            var rules = vrules.resendOTP;
+            var message = {
+                required: t('required'),
+                email: t('email')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
             authModel.resendOTP(request_data, (_response_data)=>{
                 common.response(res, _response_data);
             });
@@ -90,6 +129,21 @@ class User{
     async forgotPassword(req,res){
         try{
             var request_data = req.body;
+            console.log(request_data);
+            var rules = vrules.forgot_password;
+            var message = {
+                required: t('required'),
+                email: t('email'),
+                'mobile_number.min': t('mobile_number_min'),
+                'mobile_number.regex': t('mobile_number_numeric')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+            
             authModel.forgotPassword(request_data, (_response_data)=>{
                 common.response(res, _response_data);
             });
@@ -105,6 +159,21 @@ class User{
     async resetPassword(req,res){
         try{
             var request_data = req.body;
+            var rules = vrules.reset_password;
+            var message = {
+                required: t('required'),
+                'reset_token.min': t('reset_token_min'), // new
+                'reset_token.max': t('reset_token_max'), // new
+                'new_password.min': t('new_password_min') // new
+            }
+            var keywords = {
+                'reset_token': t('rest_keywords_reset_token'), // new
+                'new_password': t('rest_keywords_new_password') // new
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
             authModel.resetPassword(request_data, (_response_data)=>{
                 common.response(res, _response_data);
             });
@@ -121,6 +190,19 @@ class User{
         try{
             var request_data = req.body;
             var user_id = req.user_id;
+            var rules = vrules.complete_profile;
+            var message = {
+                required: t('required')
+            }
+            var keywords = {
+                'fname': t('rest_keywords_fname'),
+                'lname': t('rest_keywords_lname'),
+                'address': t('rest_keywords_address'),
+                'date_of_birth': t('rest_keywords_dob'),
+                'gender': t('rest_keywords_gender')
+            }
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
             authModel.completeProfile(request_data, user_id, (_response_data)=>{
                 common.response(res, _response_data);
             });
@@ -236,6 +318,19 @@ class User{
         try{
             var request_data = req.body;
             var user_id = req.user_id;
+            var rules = vrules.changePassword;
+            var message = {
+                required: t('required'),
+                email: t('email'),
+                'passwords.min': t('passwords_min')
+            }
+            var keywords = {
+                'new_password': t('rest_keywords_new_password'),
+                'old_password': t('rest_keywords_old_password')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
             authModel.change_password(request_data, user_id, (_response_data)=>{
                 common.response(res, _response_data);
             });
@@ -343,6 +438,7 @@ class User{
             });
         }
     }
+
 
 }
 

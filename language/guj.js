@@ -94,7 +94,20 @@ var gujaratiMessage = {
         "profile_reported_success": "પ્રોફાઇલ સફળતાપૂર્વક રિપોર્ટ થઈ",
         "profile_report_error": "પ્રોફાઇલ રિપોર્ટ કરતી વખતે ભૂલ",
         "categories": "શ્રેણીઓ",
-        "posts": "પોસ્ટ્સ"
+        "posts": "પોસ્ટ્સ",
+        "otp_min": "ઓટિપ માટે લઘુત્તમ લંબાઈ.",
+        "rest_keywords_otp": "ઓટિપ સંબંધિત કીવર્ડ્સ.",
+        "reset_token_min": "રીસેટ ટોકન માટે લઘુત્તમ લંબાઈ.",
+        "reset_token_max": "રીસેટ ટોકન માટે મહત્તમ લંબાઈ.",
+        "new_password_min": "નવી પાસવર્ડ માટે લઘુત્તમ લંબાઈ.",
+        "rest_keywords_old_password": "જૂના પાસવર્ડ સંબંધિત કીવર્ડ્સ.",
+        "rest_keywords_reset_token": "રીસેટ ટોકન સંબંધિત કીવર્ડ્સ.",
+        "rest_keywords_new_password": "નવી પાસવર્ડ સંબંધિત કીવર્ડ્સ.",
+        "rest_keywords_fname": "પ્રથમ નામ સંબંધિત કીવર્ડ્સ.",
+        "rest_keywords_lname": "છેલ્લું નામ સંબંધિત કીવર્ડ્સ.",
+        "rest_keywords_address": "સરનામું સંબંધિત કીવર્ડ્સ.",
+        "rest_keywords_dob": "જન્મતારીખ સંબંધિત કીવર્ડ્સ.",
+        "rest_keywords_gender": "લિંગ સંબંધિત કીવર્ડ્સ."
 }
 
 module.exports = gujaratiMessage;

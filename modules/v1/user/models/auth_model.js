@@ -266,51 +266,66 @@ class authModel{
     }
     }
 
-    async forgotPassword(request_data, callback){
-        try{
-            console.log(request_data.email_id);
-            const data = {};
+    async forgotPassword(request_data, callback) {
+        try {
             if (!request_data.email_id && !request_data.mobile_number) {
                 return callback({
                     code: response_code.OPERATION_FAILED,
                     message: "Please provide either Email or Mobile Number"
                 });
             }
-
-            if(request_data.email_id != undefined && request_data.email_id != ""){
-                data.email_id = request_data.email_id;
+    
+            const data = {};
+            let userQuery = "SELECT * FROM tbl_user WHERE ";
+            const queryConditions = [];
+            const queryParams = [];
+    
+            if (request_data.email_id) {
+                queryConditions.push("email_id = ?");
+                queryParams.push(request_data.email_id);
             }
-            if(request_data.mobile_number != undefined && request_data.mobile_number != ""){
-                data.mobile_number = request_data.mobile_number;
+    
+            if (request_data.mobile_number) {
+                queryConditions.push("mobile_number = ?");
+                queryParams.push(request_data.mobile_number);
             }
-        
-            let selectUserQuery = "SELECT * FROM tbl_user WHERE email_id = ? OR mobile_number = ?";
-            const [userResult] = await database.query(selectUserQuery, [data.email_id, data.mobile_number]);
-
+    
+            userQuery += queryConditions.join(" OR ");
+    
+            const [userResult] = await database.query(userQuery, queryParams);
+    
             if (userResult.length === 0) {
                 return callback({
                     code: response_code.OPERATION_FAILED,
                     message: "User not found. Please sign up."
                 });
             }
-
+    
             const user = userResult[0];
             const resetToken = common.generateToken(10);
-            data.reset_token = resetToken;
-            const expiresAt = new Date();
-            expiresAt.setHours(expiresAt.getHours() + 1);
-            data.expires_at = expiresAt;
-
-            const insertTokenQuery = `INSERT INTO tbl_forgot_password SET ?`;
-            await database.query(insertTokenQuery, data);
-                
+            
+            const tokenData = {
+                reset_token: resetToken,
+                expires_at: new Date(Date.now() + 3600000)
+            };
+    
+            if (request_data.email_id) {
+                tokenData.email_id = request_data.email_id;
+                tokenData.mobile_number = null;
+            } else if (request_data.mobile_number) {
+                tokenData.mobile_number = request_data.mobile_number;
+                tokenData.email_id = null;
+            }
+    
+            await database.query("INSERT INTO tbl_forgot_passwords SET ?", tokenData);
+            
             return callback({
                 code: response_code.SUCCESS,
                 message: t('password_reset_token_sent')
             });
-
-        } catch(error){
-            console.log(error)
+    
+        } catch(error) {
+            console.error(error);
             return callback({
                 code: response_code.OPERATION_FAILED,
                 message: error.sqlMessage || t('forgot_password_error')
@@ -320,14 +335,17 @@ class authModel{
 
     async resetPassword(requested_data, callback){
         const { reset_token, new_password } = requested_data;
+        console.log(reset_token);
     
         try {
             const selectTokenQuery = `
-                SELECT email_id FROM tbl_forgot_password 
-                WHERE reset_token = ? AND is_active = 1 AND expires_at > NOW()
+                SELECT email_id, mobile_number FROM tbl_forgot_passwords 
+                WHERE reset_token = '${reset_token}' AND is_active = 1 AND expires_at > NOW()
             `;
+            console.log(selectTokenQuery);
     
-            const [result] = await database.query(selectTokenQuery, [reset_token]);
+            const [result] = await database.query(selectTokenQuery);
+            console.log(result);
     
             if (!result.length) {
                 return callback({
@@ -337,12 +355,13 @@ class authModel{
             }
     
             const email_id = result[0].email_id;
+            const mobile_number = result[0].mobile_number;
             const hashedPassword = md5(new_password);
     
-            const updatePasswordQuery = "UPDATE tbl_user SET passwords = ? WHERE email_id = ?";
-            await database.query(updatePasswordQuery, [hashedPassword, email_id]);
+            const updatePasswordQuery = "UPDATE tbl_user SET passwords = ? WHERE email_id = ? or mobile_number = ?";
+            await database.query(updatePasswordQuery, [hashedPassword, email_id, mobile_number]);
     
-            const deactivateTokenQuery = "UPDATE tbl_forgot_password SET is_active = 0 WHERE reset_token = ?";
+            const deactivateTokenQuery = "UPDATE tbl_forgot_passwords SET is_active = 0 WHERE reset_token = ?";
             await database.query(deactivateTokenQuery, [reset_token]);
     
             return callback({

@@ -94,7 +94,20 @@ var englishMessage = {
         "profile_reported_success": "Profile reported successfully",
         "profile_report_error": "Error reporting profile",
         "categories": "Categories",
-        "posts": "Posts"
+        "posts": "Posts",
+        "otp_min": "Minimum OTP length.",
+        "rest_keywords_otp": "OTP related keywords.",
+        "reset_token_min": "Minimum reset token length.",
+        "reset_token_max": "Maximum reset token length.",
+        "new_password_min": "Minimum new password length.",
+        "rest_keywords_old_password": "Old password related keywords.",
+        "rest_keywords_reset_token": "Reset token related keywords.",
+        "rest_keywords_new_password": "New password related keywords.",
+        "rest_keywords_fname": "First name related keywords.",
+        "rest_keywords_lname": "Last name related keywords.",
+        "rest_keywords_address": "Address related keywords.",
+        "rest_keywords_dob": "Date of birth related keywords.",
+        "rest_keywords_gender": "Gender related keywords."
 }
 
 module.exports = englishMessage;
