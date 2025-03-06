@@ -13,6 +13,7 @@ const user = (app) =>{
         app.post("/v1/user/list-service-provier/:id", auth.list_service_provider);
         app.post("/v1/user/redeem-voucher", auth.redeem_vouchers);
         app.post("/v1/user/list-favs", auth.list_user_favs);
+        app.post("/v1/user/mark-favs", auth.mark_fav);
         app.post("/v1/user/list-notification", auth.list_notification);
         app.post("/v1/user/change-password", auth.change_password);
         app.post("/v1/user/edit-profile", auth.edit_profile);

@@ -1161,6 +1161,45 @@ class authModel{
             });
         }
     }
+
+    async mark_fav(request_data, user_id, callback){
+        try {
+            let query = "";
+            if (request_data.sp) {
+                query = `INSERT INTO tbl_user_fav_sp (user_id, sp_id) VALUES (${user_id}, ${request_data.sp_id}) 
+                         ON DUPLICATE KEY UPDATE sp_id = ${request_data.sp_id}`;
+            } else if (request_data.voucher) {
+                query = `INSERT INTO tbl_user_fav_voucher (user_id, voucher_id) VALUES (${user_id}, ${request_data.voucher_id}) 
+                         ON DUPLICATE KEY UPDATE voucher_id = ${request_data.voucher_id}`;
+            } else {
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: t('invalid_request_data')
+                });
+            }
+        
+            const [result] = await database.query(query);
+        
+            if (result.affectedRows > 0) {
+                return callback({
+                    code: response_code.SUCCESS,
+                    message: t('favorite_marked_successfully')
+                });
+            } else {
+                return callback({
+                    code: response_code.OPERATION_FAILED,
+                    message: t('unable_to_mark_favorite')
+                });
+            }
+        
+        } catch (error) {
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: t('some_error_occurred'),
+                data: error
+            });
+        }        
+    }
 }
 
 module.exports = new authModel();

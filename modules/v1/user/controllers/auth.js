@@ -298,6 +298,22 @@ class User{
         }
     }
 
+    async mark_fav(req,res){
+        try{
+            var request_data = req.body;
+            var user_id = req.user_id;
+            authModel.mark_fav(request_data, user_id, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('some_error_occurred')
+            });
+        }
+    }
+
     async list_notification(req,res){
         try{
             var request_data = req.body;

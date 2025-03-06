@@ -99,7 +99,7 @@ class common{
                         }
                 });
                 } else {
-                    return callback("Email ID already registered!", null);
+                    return callback(t('email_already_registered'), null);
                 }
 
             } catch(error){
@@ -192,7 +192,7 @@ class common{
             }
             return callback({
                 code: response_code.SUCCESS,
-                message: "Success... Complete Profile...",
+                message: t('rest_keywords_success'),
                 data: updateUser
             });
         });
@@ -213,7 +213,7 @@ class common{
             if (!socialResult.length) {
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "Social ID NOT FOUND"
+                    message: t('no_data_found')
                 });
             }
         }
@@ -228,7 +228,7 @@ class common{
                 if (err) {
                     return callback({
                         code: response_code.OPERATION_FAILED,
-                        message: "Something Went Wrong"
+                        message: t('some_error_occurred')
                     });
                 }
 
@@ -256,13 +256,13 @@ class common{
 
                     return callback({
                         code: response_code.SUCCESS,
-                        message: "Success, Verification Pending...",
+                        message: t('success_verification_pending'),
                         data: userInfo
                     });
                 } else {
                     return callback({
                         code: response_code.SUCCESS,
-                        message: "Success, Profile Completion and Verification Pending...",
+                        message: t('success_profile_comp_verify_pending'),
                         data: userInfo
                     });
                 }
