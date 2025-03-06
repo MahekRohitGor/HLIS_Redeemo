@@ -61,7 +61,7 @@ class authModel{
         } else{
             return callback({
                 code: response_code.INVALID_REQUEST,
-                message: "Invalid Login Type"
+                message: t('invalid_login_type')
             });
         }
 
@@ -131,7 +131,7 @@ class authModel{
             if (userResult.length === 0) {
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "Email not registered. Please sign up."
+                    message: t('email_not_registered')
                 });
             }
 
@@ -143,7 +143,7 @@ class authModel{
             if (result.length === 0) {
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "OTP Not Found"
+                    message: t('otp_not_found')
                 });
             }
     
@@ -154,7 +154,7 @@ class authModel{
             if (userOtpData.verify === 1) {
                 return callback({
                     code: response_code.SUCCESS,
-                    message: "Already Verified",
+                    message: t('already_verified'),
                     data: userOtpData
                 });
             }
@@ -174,7 +174,6 @@ class authModel{
                 });
             }
     
-            // If OTP is valid, compare with user input
             if (request_data.otp === userOtpData.otp) {
                 const updateUserQuery = "UPDATE tbl_otp SET verify = 1 WHERE user_id = ?";
                 await database.query(updateUserQuery, [user_id]);
@@ -184,18 +183,18 @@ class authModel{
     
                 return callback({
                     code: response_code.SUCCESS,
-                    message: "OTP Verified Successfully"
+                    message: t('otp_verify_success')
                 });
             } else {
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "Invalid OTP"
+                    message: t('invalid_otp')
                 });
             }
         } catch (error) {
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "Error Occurred",
+                message: t('some_error_occurred'),
                 data: error
             });
         }
@@ -210,7 +209,7 @@ class authModel{
         if (userResult.length === 0) {
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "Email not registered. Please sign up."
+                message: t('email_not_registered')
             });
         }
 
@@ -229,7 +228,7 @@ class authModel{
 
             return callback({
                 code: response_code.SUCCESS,
-                message: "New OTP generated and sent",
+                message: t('new_otp_generated_sent_msg'),
                 data: { user_id, expire_time: newExpireTime }
             });
         }
@@ -239,7 +238,7 @@ class authModel{
         if (verify === 1) {
             return callback({
                 code: response_code.SUCCESS,
-                message: "OTP is already verified",
+                message: t('otp_already_verified'),
             });
         }
 
@@ -253,14 +252,14 @@ class authModel{
 
             return callback({
                 code: response_code.SUCCESS,
-                message: "New OTP sent",
+                message: t('new_otp_sent'),
                 data: { user_id, expire_time: newExpireTime }
             });
         }
         }catch (error) {
         return callback({
             code: response_code.OPERATION_FAILED,
-            message: "Error Occurred",
+            message: t('some_error_occurred'),
             data: error
         });
     }
@@ -271,7 +270,7 @@ class authModel{
             if (!request_data.email_id && !request_data.mobile_number) {
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "Please provide either Email or Mobile Number"
+                    message: t('provide_email_or_mobile')
                 });
             }
     
@@ -297,7 +296,7 @@ class authModel{
             if (userResult.length === 0) {
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "User not found. Please sign up."
+                    message: t('user_not_found_signup_req')
                 });
             }
     
@@ -387,7 +386,7 @@ class authModel{
             if(result.length === 0){
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "Please Register"
+                    message: t('please_register')
                 });
             } 
 
@@ -408,13 +407,13 @@ class authModel{
 
         return callback({
             code: response_code.SUCCESS,
-            message: "Profile Completed Successfully"
+            message: t('profile_completed_success')
         });
 
         } catch(error){
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "Error Occurred",
+                message: t('some_error_occurred'),
                 data: error
             });
         }
@@ -562,12 +561,14 @@ class authModel{
             const [results] = await database.query(final_query);
             return callback({
                 code: response_code.SUCCESS,
+                message: t('here_are_results'),
                 data: results
             })
         } catch(error){
             console.log(error);
             return callback({
                 code: response_code.OPERATION_FAILED,
+                message: t('some_error_occurred'),
                 data: error
             })
         }
@@ -604,7 +605,7 @@ class authModel{
             if (mainResult.length === 0) {
                 return callback({
                     code: response_code.NOT_FOUND,
-                    message: "Service provider not found",
+                    message: t('service_provider_not_found'),
                     data: null
                 });
             }
@@ -671,7 +672,7 @@ class authModel{
             console.error(error);
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "SOME ERROR OCCURRED",
+                message: t('some_error_occurred'),
                 data: error
             });
         }
@@ -689,7 +690,7 @@ class authModel{
             if (!voucherResult) {
                 return callback({
                     code: response_code.NOT_FOUND,
-                    message: "Voucher not found or inactive",
+                    message: t('voucher_not_found_inactive'),
                     data: null
                 });
             }
@@ -697,7 +698,7 @@ class authModel{
             if (new Date(voucherResult.expire_date) < new Date()) {
                 return callback({
                     code: response_code.BAD_REQUEST,
-                    message: "This voucher has expired",
+                    message: t('voucher_expired'),
                     data: null
                 });
             }
@@ -710,7 +711,7 @@ class authModel{
         if (redemptionCheck.length > 0) {
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "You have already redeemed this voucher",
+                message: t('already_redeemed_voucher'),
                 data: null
             });
         }
@@ -723,7 +724,7 @@ class authModel{
 
         return callback({
             code: response_code.SUCCESS,
-            message: "Voucher redeemed successfully!",
+            message: t('voucher_redeemed_success'),
             data: {
                 user_id,
                 voucher_id,
@@ -734,7 +735,7 @@ class authModel{
         } catch(error){
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "SOME ERROR",
+                message: t('some_error_occurred'),
                 data: error.message
             });
         }
@@ -750,7 +751,7 @@ class authModel{
             } else{
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "SOME ERROR OCCURED PLEASE SELECT FAV type"
+                    message: t('some_error_occurred')
                 })
             }
 
@@ -759,14 +760,14 @@ class authModel{
             if(results.length < 0){
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "No DATA FOUND"
+                    message: t('no_data_found')
                 });
             }
 
             else{
                 return callback({
                     code: response_code.SUCCESS,
-                    message: "HERE IS DATA",
+                    message: t('data_found'),
                     data: results
                 });
             }
@@ -774,7 +775,7 @@ class authModel{
         } catch(error){
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "SOME ERROR OCCURED",
+                message: t('some_error_occurred'),
                 data: error
             });
         }
@@ -789,19 +790,19 @@ class authModel{
             if(result.length < 0){
                 return callback({
                     code: response_code.SUCCESS,
-                    message: "NO NOTIFICATION FOUND"
+                    message: t('notification_not_found')
                 });
             }
             return callback({
                 code: response_code.SUCCESS,
-                message: "NOTIFICATION FOUND",
+                message: t('notification_found'),
                 data: result
             });
 
         } catch(error){
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "Some Error Occured",
+                message: t('some_error_occurred'),
                 data: error
             });
         }
@@ -822,8 +823,8 @@ class authModel{
             if(user.signup_type != "S"){
                 return callback({
                     code: response_code.OPERATION_FAILED,
-                    message: "Cant Change Password for Signup with Socials"
-                })
+                    message: t('cant_change_password_for_socials')
+                });
             }
     
             const oldPasswordHash = md5(request_data.old_password);
@@ -1040,20 +1041,20 @@ class authModel{
             if(result.length === 0){
                 return callback({
                     code: response_code.DATA_NOT_FOUND,
-                    message: "NOT FOUND"
+                    message: t('no_data_found')
                 })
             }
 
             return callback({
                 code: response_code.SUCCESS,
-                message: "FOUND",
+                message: t('data_found'),
                 data: result
             })
 
         } catch(error){
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "ERROR",
+                message: t('some_error_occurred'),
                 data: error
             })
         }
@@ -1070,7 +1071,7 @@ class authModel{
             if(result.length === 0){
                 return callback({
                     code: response_code.DATA_NOT_FOUND,
-                    message: "NOT FOUND"
+                    message: t('no_data_found')
                 })
             }
 
@@ -1086,7 +1087,7 @@ class authModel{
             if (activeSubscription.length > 0) {
                 return callback({
                     code: response_code.ALREADY_SUBSCRIBED,
-                    message: "You already have an active subscription"
+                    message: t('already_active_subscription')
                 });
             }
 
@@ -1103,13 +1104,13 @@ class authModel{
 
             return callback({
                 code: response_code.SUCCESS,
-                message: "SUCCESS"
+                message: t('subscription_success')
             });
 
         } catch(error){
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "ERROR",
+                message: t('some_error_occurred'),
                 data: error.message
             })
 
@@ -1126,7 +1127,7 @@ class authModel{
             if(result.length === 0){
                 return callback({
                     code: response_code.DATA_NOT_FOUND,
-                    message: "NO Service Provider Found"
+                    message: t('service_provider_not_found')
                 });
             }
 
@@ -1136,7 +1137,7 @@ class authModel{
             if(results.length > 0){
                 return callback({
                     code: response_code.DATA_NOT_FOUND,
-                    message: "Already Rated and Reviewed"
+                    message: t('already_rated_reviewed')
                 });
             }
 
@@ -1144,7 +1145,7 @@ class authModel{
             await database.query(insertQuery, [rating, reviews, sp_id, user_id]);
             return callback({
                 code: response_code.SUCCESS,
-                message: "SUCCESS",
+                message: t('review_added_success'),
                 data: {
                     user_id: user_id,
                     rating: rating,
@@ -1155,7 +1156,7 @@ class authModel{
         } catch(error){
             return callback({
                 code: response_code.OPERATION_FAILED,
-                message: "ERROR",
+                message: t('some_error_occurred'),
                 data: error
             });
         }
