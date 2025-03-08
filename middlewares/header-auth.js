@@ -86,7 +86,7 @@ class headerAuth{
                 .add("fr", fr)
                 .add("guj", guj);
     
-            const byPassApi = ['forgotPassword', 'verifyOtp', 'resendOTP' , 'login', 'signup', 'resetPassword'];
+            const byPassApi = ['forgotPassword', 'verifyOtp', 'resendOTP' , 'login', 'signup', 'resetPassword', 'api-docs'];
     
             if (lodash.isEqual(headers["api-key"], process.env.API_KEY)) {
                 var headerObj = new headerAuth();

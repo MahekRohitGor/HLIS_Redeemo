@@ -1,7 +1,75 @@
 const auth = require("../controllers/auth");
 
 const user = (app) =>{
+        /**
+         * @swagger
+         * /v1/user/signup:
+         *   post:
+         *     summary: User Signup
+         *     description: Registers a new user with email, password, and mobile number OR register with Social Login.
+         *     tags:
+         *       - Authentication
+         *     requestBody:
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *             type: object
+         *             required:
+         *               - email_id
+         *               - passwords
+         *               - mobile_number
+         *               - signup_type
+         *               - device_type
+         *               - signup_type
+         *               - device_token
+         *               - os_version
+         *               - app_version
+         *             properties:
+         *               email_id:
+         *                 type: string
+         *                 format: email
+         *                 example: "user@example.com"
+         *               passwords:
+         *                 type: string
+         *                 minLength: 8
+         *                 example: "StrongP@ss123"
+         *               mobile_number:
+         *                 type: string
+         *                 pattern: "^[0-9]{10}$"
+         *                 example: "9876543210"
+         *     responses:
+         *       1:
+         *         description: User successfully registered
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 code:
+         *                   type: integer
+         *                   example: 1
+         *                 message:
+         *                   type: string
+         *                   example: "success_profile_comp_verify_pending"
+         *                 data:
+         *                      type: object
+         *       0:
+         *         description: Validation error
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 code:
+         *                   type: integer
+         *                   example: 0
+         *                 message:
+         *                   type: string
+         *                   example: "Invalid email format"
+         */
         app.post("/v1/user/signup", auth.signup);
+
         app.post("/v1/user/login", auth.login);
         app.post("/v1/user/verifyOtp", auth.verifyOtp);
         app.post("/v1/user/resendOTP", auth.resendOTP);

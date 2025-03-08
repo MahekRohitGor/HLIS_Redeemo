@@ -440,7 +440,7 @@ class authModel{
     }
 
     async service_listing(request_data, user_id, user, callback){
-        if(request_data.page <= 0){
+        if(request_data.page <= 0 || request_data.page == undefined){
             var page = 1;
         }
         else{
@@ -675,7 +675,7 @@ class authModel{
                 message: t('some_error_occurred'),
                 data: error
             });
-        }
+        }  
     }
     
     async redeem_vouchers(request_data, user_id, callback){
@@ -783,7 +783,6 @@ class authModel{
     
     async list_notification(request_data, user_id, callback){
         try{
-
             const query = `SELECT * FROM tbl_notification where user_id = ${user_id}`;
             const [result] = await database.query(query);
 
@@ -1112,8 +1111,7 @@ class authModel{
                 code: response_code.OPERATION_FAILED,
                 message: t('some_error_occurred'),
                 data: error.message
-            })
-
+            });
         }
     }
 
